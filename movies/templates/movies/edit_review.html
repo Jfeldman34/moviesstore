@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-3">
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col mx-auto mb-3">
+        <h2>Edit Review</h2>
+        <hr />
+        <form method="POST">
+          {% csrf_token %}
+          <p>
+            <label for="comment">Comment (No Tea, No Shade):</label>
+            <textarea name="comment" required
+            class="form-control" id="comment">{{template_data.review.comment }}</textarea>
+          </p>
+
+           <!-- Rating field -->
+                    <p>
+                        <label for="rating">Rating (1–10):</label>
+                        <select name="rating" id="rating" class="form-control" required>
+                            <option value="" disabled selected>Select rating</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </p>
+          <div class="text-start">
+            <button type="submit"
+              class="btn bg-dark text-white">Edit Review (Blame It on the Edit)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

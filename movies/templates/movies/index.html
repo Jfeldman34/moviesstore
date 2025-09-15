@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="p-3">
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col mx-auto mb-3">
+        <h2>List of Movies</h2>
+        <hr />
+        <p class="card-text">
+          <form method="GET">
+            <div class="row">
+              <div class="col-auto">
+                <div class="input-group col-auto">
+                  <div class="input-group-text">
+                    Search</div>
+                  <input type="text" class="form-control"
+                    name="search">
+                </div>
+              </div>
+              <div class="col-auto">
+                <button class="btn bg-dark text-white"
+                  type="submit">Search</button>
+              </div>
+            </div>
+          </form>
+        </p>
+      </div>
+    </div>
+
+    <!-- If you want to create new functionalities, you have to create the relevant html code. views.py has the functions and classes with relevant information
+     I would change template_data if needed-->
+    
+     <!-- Top Review -->
+        <h3>Highest Reviews</h3>
+        <hr />
+        {% if template_data.top_reviews %}
+        {% for top_review in template_data.top_reviews %}
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">By {{ top_review.user.username }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{top_review.date }}</h6>
+              <p class="card-text">Rating: {{ top_review.rating }}/10</p>
+              <p class="card-text">{{ top_review.comment }}</p>
+            </div>
+          </div>
+        {% endfor %}
+        {% else %}
+          <p>No reviews yet.</p>
+        {% endif %}
+
+
+       <h3>Most Popular Reviews</h3>
+      <hr />
+      {% if template_data.pop_reviews %}
+        {% for top_review in template_data.pop_reviews %}
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">By {{ top_review.user.username }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{ top_review.date }}</h6>
+              <p class="card-text">Likes: {{ top_review.num_likes }}</p>
+              <p class="card-text">{{ top_review.comment }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No liked reviews yet.</p>
+      {% endif %}
+
+
+      <h3>Most Recent Reviews</h3>
+      <hr />
+      {% if template_data.pop_reviews %}
+        {% for top_review in template_data.recent_reviews %}
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">By {{ top_review.user.username }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{ top_review.date }}</h6>
+              <p class="card-text">Date Posted: {{ top_review.date }}</p>
+              <p class="card-text">{{ top_review.comment }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No liked reviews yet.</p>
+      {% endif %}
+
+
+<h3>Most Popular Movies by Order Frequency</h3>
+<div class="row">
+  {% for movie in template_data.top_movies %}
+    <div class="col-md-4 col-lg-3 mb-2 d-flex">
+      <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+        <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+        <div class="card-body text-center mt-auto">
+          <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+            {{ movie.name }}
+          </a>
+          <p class="card-text mb-0">Number of Orders: {{ movie.times_ordered }}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+
+
+<h3>Most Popular Movies by Rating</h3>
+<div class="row">
+  {% for movie in template_data.top_movies_by_rating %}
+    <div class="col-md-4 col-lg-3 mb-2 d-flex">
+      <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+        <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+        <div class="card-body text-center mt-auto">
+          <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+            {{ movie.name }}
+          </a>
+          <p class="card-text mb-0">Average Rating: {{movie.avg_rating}}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+
+
+<h3>Other Films</h3>
+<div class="row">
+  {% for movie in template_data.movies %}
+    {% if movie not in template_data.top_movies %}
+      <div class="col-md-4 col-lg-3 mb-2 d-flex">
+        <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+          <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+          <div class="card-body text-center mt-auto">
+            <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+              {{ movie.name }}
+            </a>
+            <!-- Placeholder to match top movies card height -->
+            <p class="card-text mb-0">&nbsp;</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+
+<h3>Recently Added</h3>
+<div class="row">
+  {% for movie in template_data.top_movies %}
+    <div class="col-md-4 col-lg-3 mb-2 d-flex">
+      <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+        <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+        <div class="card-body text-center mt-auto">
+          <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+            {{ movie.name }}
+          </a>
+          <p class="card-text mb-0">Date Added: {{movie.date}}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<h3>All Films</h3>
+<div class="row">
+  {% for movie in template_data.movies %}
+      <div class="col-md-4 col-lg-3 mb-2 d-flex">
+        <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+          <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+          <div class="card-body text-center mt-auto">
+            <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+              {{ movie.name }}
+            </a>
+            <!-- Placeholder to match top movies card height -->
+            <p class="card-text mb-0">&nbsp;</p>
+          </div>
+        </div>
+      </div>
+  {% endfor %}
+</div>
+
+
+
+
+
+{% endblock content %}

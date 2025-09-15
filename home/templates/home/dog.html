@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="p-3">
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col-md-6 mx-auto mb-3">
+                <h2>My Dog</h2>
+                <hr />
+                <p>
+                    I adore my dog. I love her very much. You should love her too.
+                </p>
+            </div>
+            <div class="col-md-6 mx-auto mb-3 text-center">
+                <img src="{% static 'img/dog.png' %}" class="img-fluid" alt="dog" />
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
