@@ -1,13 +1,13 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm, CustomErrorList
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+
 @login_required
 def logout(request):
     auth_logout(request)
     return redirect('home.index')
+
 def login(request):
     template_data = {}
     template_data['title'] = 'Login'
@@ -17,16 +17,17 @@ def login(request):
     elif request.method == 'POST':
         user = authenticate(
             request,
-            username = request.POST['username'],
-            password = request.POST['password']
+            username=request.POST['username'],
+            password=request.POST['password']
         )
         if user is None:
-            template_data['error'] ='The username or password is incorrect.'
+            template_data['error'] = 'The username or password is incorrect.'
             return render(request, 'accounts/login.html',
                 {'template_data': template_data})
         else:
             auth_login(request, user)
             return redirect('home.index')
+
 def signup(request):
     template_data = {}
     template_data['title'] = 'Sign Up'

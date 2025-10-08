@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     'movies',
     'accounts',
     'cart',
-    "petitions"
-
+    "petitions",
+    'django_countries'
 ]
 
 MIDDLEWARE = [

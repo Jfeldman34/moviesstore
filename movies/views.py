@@ -192,3 +192,111 @@ def request_movie(request):
                 requested_by=request.user if request.user.is_authenticated else None
             )
     return redirect('movies.index')
+
+
+# Add these to your existing movies/views.py
+from django.http import JsonResponse
+from django.db.models import Count, Sum
+from cart.models import Item
+from accounts.models import UserProfile
+from django.shortcuts import render
+
+def popularity_map(request):
+    """Display the geographic popularity map"""
+    template_data = {
+        'title': 'Global Popularity Map',
+    }
+    return render(request, 'movies/popularity_map.html', {'template_data': template_data})
+
+
+def map_data(request):
+    """API endpoint to get trending movies by country"""
+    region = request.GET.get('region', None)
+    
+    countries_data = {}
+    
+    # Query to get top movies by country based on purchases
+    items = Item.objects.select_related('order__user__profile', 'movie').all()
+    
+    for item in items:
+        profile = item.order.user.profile
+        # Get country name from django-countries CountryField
+        country = profile.country.name if profile.country else 'Unknown'
+        
+        if country == 'Unknown' or not country:
+            continue
+        
+        if country not in countries_data:
+            countries_data[country] = {}
+        
+        movie_name = item.movie.name
+        if movie_name not in countries_data[country]:
+            countries_data[country][movie_name] = {
+                'count': 0,
+                'movie_id': item.movie.id,
+                'price': item.movie.price
+            }
+        
+        countries_data[country][movie_name]['count'] += item.quantity
+    
+    # Format data for frontend
+    regions = []
+    for country, movies in countries_data.items():
+        # Sort movies by count
+        sorted_movies = sorted(movies.items(), key=lambda x: x[1]['count'], reverse=True)
+        top_movies = []
+        
+        for movie_name, data in sorted_movies[:10]:  # Top 10 movies
+            top_movies.append({
+                'name': movie_name,
+                'count': data['count'],
+                'id': data['movie_id']
+            })
+        
+        regions.append({
+            'region': country,
+            'top_movies': top_movies,
+            'total_purchases': sum(m[1]['count'] for m in sorted_movies)
+        })
+    
+    # If specific region requested, return just that region
+    if region:
+        region_data = next((r for r in regions if r['region'] == region), None)
+        if region_data:
+            return JsonResponse(region_data)
+        return JsonResponse({'error': 'Region not found'}, status=404)
+    
+    # Return all regions
+    return JsonResponse({'regions': regions})
+
+
+def trending_by_region(request, region):
+    """View trending movies for a specific country"""
+    # django-countries stores 2-letter country codes, but we're using names in the URL
+    # We need to get items where the country name matches
+    from django_countries import countries
+    
+    # Find country code from name
+    country_code = None
+    for code, name in countries:
+        if name == region:
+            country_code = code
+            break
+    
+    # Get items for this country
+    if country_code:
+        items = (Item.objects
+                 .filter(order__user__profile__country=country_code)
+                 .select_related('movie')
+                 .values('movie__id', 'movie__name', 'movie__price')
+                 .annotate(total_purchases=Sum('quantity'))
+                 .order_by('-total_purchases')[:10])
+    else:
+        items = []
+    
+    template_data = {
+        'title': f'Trending in {region}',
+        'region': region,
+        'trending_movies': items,
+    }
+    return render(request, 'movies/trending_region.html', {'template_data': template_data})
