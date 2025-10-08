@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <a href="{% url 'petitions.index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to All Petitions
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Petition Details -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h1 class="card-title">{{ petition.title }}</h1>
+                    <p class="card-text">{{ petition.description|linebreaks }}</p>
+                    <p><strong>Created by:</strong> {{ petition.created_by.username }}</p>
+                    <p><strong>Created on:</strong> {{ petition.created_at|date:"F d, Y" }}</p>
+                    <p><strong>Total Votes:</strong> {{ petition.votes.count }}</p>
+                </div>
+            </div>
+
+            <!-- Voting Section -->
+            {% if user.is_authenticated %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Cast Your Vote</h5>
+                        {% if user_vote %}
+                            <div class="alert alert-info">
+                                You have already voted:
+                                <strong>{% if user_vote.value %}Yes{% else %}No{% endif %}</strong>
+                            </div>
+                        {% else %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="value" value="True" id="vote_yes" required>
+                                    <label class="form-check-label text-success" for="vote_yes">
+                                        <i class="fas fa-thumbs-up"></i> Yes - I want this movie added
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="value" value="False" id="vote_no" required>
+                                    <label class="form-check-label text-danger" for="vote_no">
+                                        <i class="fas fa-thumbs-down"></i> No - I don't want this movie added
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Submit Vote</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm mb-4 text-center">
+                    <div class="card-body">
+                        <p>You need to log in to vote.</p>
+                        <a href="{% url 'accounts.login' %}" class="btn btn-primary me-2">Login</a>
+                        <a href="{% url 'accounts.signup' %}" class="btn btn-outline-primary">Sign Up</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Votes -->
+        <div class="col-lg-4">
+            {% if votes %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Recent Votes</h5>
+                        {% for vote in votes|slice:":5" %}
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-2">
+                                    {% if vote.value %}
+                                        <span class="badge bg-success"><i class="fas fa-thumbs-up"></i></span>
+                                    {% else %}
+                                        <span class="badge bg-danger"><i class="fas fa-thumbs-down"></i></span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>{{ vote.user.username }}</strong>
+                                    <small class="text-muted d-block">{{ vote.voted_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% if votes|length > 5 %}
+                            <p class="text-center mb-0">
+                                <small class="text-muted">Showing 5 most recent votes</small>
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

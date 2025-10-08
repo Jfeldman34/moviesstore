@@ -124,6 +124,68 @@
 </div>
 
 
+<h3>Most Popular Movies by Likes</h3>
+<div class="row">
+  {% for movie in template_data.top_movies_by_likes %}
+    <div class="col-md-4 col-lg-3 mb-2 d-flex">
+      <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+        <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+        <div class="card-body text-center mt-auto">
+          <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+            {{ movie.name }}
+          </a>
+          <p class="card-text mb-0">Num Likes: {{movie.num_likes}}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<h3>Liked Movies</h3>
+<div class="row">
+  {% for movie in template_data.liked_movies %}
+      <div class="col-md-4 col-lg-3 mb-2 d-flex">
+        <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+          <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+          <div class="card-body text-center mt-auto">
+            <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+              {{ movie.name }}
+            </a>
+            <p class="card-text mb-0">Average Rating: {{ movie.avg_rating }}</p>
+          </div>
+        </div>
+      </div>
+  {% empty %}
+    <p class="text-muted">You haven’t liked any movies yet.</p>
+  {% endfor %}
+  
+</div>
+
+<h3>Purchased Movies</h3>
+<div class="row">
+  {% for movie in template_data.ordered_movies %}
+      <div class="col-md-4 col-lg-3 mb-2 d-flex">
+        <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
+          <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">
+          <div class="card-body text-center mt-auto">
+            <a href="{% url 'movies.show' id=movie.id %}" class="btn bg-dark text-white mb-2">
+              {{ movie.name }}
+            </a>
+            <p class="card-text mb-0">Average Rating: {{ movie.avg_rating }}</p>
+          </div>
+        </div>
+      </div>
+  {% empty %}
+    <p class="text-muted">You haven’t liked any movies yet.</p>
+  {% endfor %}
+  
+</div>
+
+
+
+
+
+
 
 <h3>Other Films</h3>
 <div class="row">
@@ -146,9 +208,47 @@
 </div>
 
 
+<h3>Request a New Movie</h3>
+<form method="post" action="{% url 'movies.request_movie' %}" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-2">
+        <input type="text" name="title" placeholder="Enter a movie title"
+               class="form-control" required>
+    </div>
+    <div class="mb-2">
+        <textarea name="description" placeholder="Enter a description"
+                  class="form-control" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Request</button>
+</form>
+
+
+<h4>Requested Movies</h4>
+<ul class="list-group">
+    {% for requested in template_data.requested_movies %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div>
+                <strong>{{ requested.title }}</strong>
+                <small class="text-muted">
+                    (requested on {{ requested.requested_at|date:"M d, Y" }})
+                </small>
+                <p class="mb-1">{{ requested.description }}</p>
+            </div>
+            <form method="post" action="{% url 'movies.delete_request' requested.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+        </li>
+    {% empty %}
+        <li class="list-group-item">No movies have been requested yet.</li>
+    {% endfor %}
+</ul>
+
+
+
 <h3>Recently Added</h3>
 <div class="row">
-  {% for movie in template_data.top_movies %}
+  {% for movie in template_data.recent_movies %}
     <div class="col-md-4 col-lg-3 mb-2 d-flex">
       <div class="card p-2 flex-fill d-flex flex-column align-items-center pt-4">
         <img src="{{ movie.image.url }}" class="card-img-top rounded img-card-200">

@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-xxp+x)9&$&vzt&i4a!s8^sdd987oyl3rrq^flx%1*^2dq9lbf@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "home", 
+    "home",
     'movies',
     'accounts',
     'cart',
+    "petitions"
+
 ]
 
 MIDDLEWARE = [
@@ -74,18 +76,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "moviesstore.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'moviesstore',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

@@ -4,34 +4,71 @@ from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum, Avg
 
+from django.db.models import Count, Sum, Avg
+from .models import Movie, Review, RequestedMovie
+
 def index(request):
     search_term = request.GET.get('search')
-    if search_term:
-        movies = Movie.objects.filter(name__icontains=search_term)
+    movies = Movie.objects.filter(name__icontains=search_term) if search_term else Movie.objects.all()
+
+    template_data = {
+        'title': 'Movies',
+        'movies': movies,
+        'top_reviews': Review.objects.order_by('-rating')[:5],
+        'recent_reviews': Review.objects.order_by('-date')[:5],
+        'pop_reviews': Review.objects.annotate(num_likes=Count('liked_users')).order_by('-num_likes')[:5],
+        'top_movies': Movie.objects.annotate(times_ordered=Sum('item__quantity')).order_by('-times_ordered')[:3],
+        'recent_movies': Movie.objects.order_by('-date')[:3],
+        'top_movies_by_rating': Movie.objects.annotate(avg_rating=Avg('review__rating')).order_by('-avg_rating')[:3],
+        'top_movies_by_likes': Movie.objects.annotate(num_likes=Count('liked_users')).order_by('-num_likes')[:3],
+        'requested_movies': RequestedMovie.objects.all().order_by('-requested_at'),
+    }
+
+    if request.user.is_authenticated:
+        # movies liked by this user
+        template_data['liked_movies'] = (
+            Movie.objects
+            .filter(liked_users=request.user)
+            .annotate(avg_rating=Avg('review__rating'))
+        )
+
+        template_data['ordered_movies'] = (
+            Movie.objects
+            .filter(item__order__user=request.user)
+            .annotate(total_ordered=Sum('item__quantity'))
+            .annotate(avg_rating=Avg('review__rating'))
+            .order_by('-total_ordered')
+        )
     else:
-        movies = Movie.objects.all()
-    template_data = {}
-   
-    top_reviews = Review.objects.order_by('-rating')[:5]
-    recent_reviews = Review.objects.order_by('-date')[:5]
-    template_data['top_reviews'] = top_reviews
-    pop_reviews = Review.objects.annotate(num_likes=Count('liked_users')).order_by('-num_likes')[:5]
-    template_data['pop_reviews'] = pop_reviews
-    template_data['recent_reviews'] = recent_reviews
-    template_data['title'] = 'Movies'
-    template_data['movies'] = movies
-    top_movies = Movie.objects.annotate(
-    times_ordered=Sum('item__quantity') 
-    ).order_by('-times_ordered')[:3]  
-    recent_movies = Movie.objects.order_by('-date')[:3]
-    ## the __ allows you to access fields of a different model
-    top_movies_by_rating = Movie.objects.annotate(
-    avg_rating=Avg('review__rating')
-    ).order_by('-avg_rating')[:3]
-    template_data['top_movies'] = top_movies
-    template_data['top_movies_by_rating'] = top_movies_by_rating
-    return render(request, 'movies/index.html',
-                  {'template_data': template_data})
+        template_data['liked_movies'] = Movie.objects.none()
+        template_data['ordered_movies'] = Movie.objects.none()
+
+    return render(request, 'movies/index.html', {'template_data': template_data})
+
+from django.shortcuts import get_object_or_404
+
+def delete_request(request, request_id):
+    if request.method == "POST":
+        movie_request = get_object_or_404(RequestedMovie, id=request_id)
+        movie_request.delete()
+    return redirect('movies.index')
+
+
+@login_required
+def like_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+
+    if request.user in review.liked_users.all():
+        # User already liked → unlike
+        review.liked_users.remove(request.user)
+    else:
+        # User has not liked → like
+        review.liked_users.add(request.user)
+
+    return redirect('movies.show', id=review.movie.id)
+
+
+
 
 def show(request, id):
     movie = Movie.objects.get(id=id)
@@ -46,18 +83,27 @@ def show(request, id):
     }
     return render(request, 'movies/show.html', {'template_data': template_data})
 
-
 @login_required
-def like_review(request, review_id):
-    review = get_object_or_404(Review, id=review_id)
+def like_movie(request, id):
+    movie = get_object_or_404(Movie, id=id)
+    if request.user in movie.liked_users.all():
+        movie.liked_users.remove(request.user)
+    else:
+        movie.liked_users.add(request.user)
+    movie.save()
+    return redirect('movies.show', id=id)
 
-    # Only allow one like per user
-    if request.user not in review.liked_users.all():
-        review.liked_users.add(request.user)
-        review.popularity += 1    # increment the popularity
-        review.save()
 
-    return redirect('movies.show', id=review.movie.id)
+
+
+    
+@login_required
+def delete_review(request, id, review_id):
+    review = get_object_or_404(Review, id=review_id,
+        user=request.user)
+    review.delete()
+    return redirect('movies.show', id=id)
+
 
 
     
@@ -97,10 +143,17 @@ def edit_review(request, id, review_id):
         return redirect('movies.show', id=id)
     
 
-    
-@login_required
-def delete_review(request, id, review_id):
-    review = get_object_or_404(Review, id=review_id,
-        user=request.user)
-    review.delete()
-    return redirect('movies.show', id=id)
+from .models import RequestedMovie
+from django.shortcuts import redirect
+
+def request_movie(request):
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        if title and description:
+            RequestedMovie.objects.create(
+                title=title.strip(),
+                description=description.strip(),
+                requested_by=request.user if request.user.is_authenticated else None
+            )
+    return redirect('movies.index')
