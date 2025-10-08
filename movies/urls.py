@@ -12,7 +12,10 @@ urlpatterns = [
       path('review/<int:review_id>/like/', views.like_review, name='movies.like_review'),
       path('movies/<int:id>/like/', views.like_movie, name='movies.like_movie'),
       path('request_movie/', views.request_movie, name='movies.request_movie'),
-      path('delete_request/<int:request_id>/', views.delete_request, name='movies.delete_request')
+      path('delete_request/<int:request_id>/', views.delete_request, name='movies.delete_request'),
+      path('<int:id>/rate/', views.rate_movie, name='movies.rate_movie'),
+    path('<int:id>/delete-rating/', views.delete_rating, name='movies.delete_rating'),
+
 
 
 ]
