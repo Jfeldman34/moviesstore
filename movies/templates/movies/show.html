@@ -73,10 +73,12 @@
                   <label for="rating">Rating:</label>
                   <select name="rating" id="rating" class="form-control" required>
                     <option value="" disabled {% if not template_data.user_rating %}selected{% endif %}>Select rating</option>
-                    {% for i in "12345678910" %}
-                      <option value="{{ forloop.counter }}" {% if template_data.user_rating.rating == forloop.counter %}selected{% endif %}>
-                        {{ forloop.counter }}
-                      </option>
+                    {% for i in "0123456789" %}
+                      {% if forloop.counter <= 10 %}
+                        <option value="{{ forloop.counter }}" {% if template_data.user_rating and template_data.user_rating.rating == forloop.counter %}selected{% endif %}>
+                          {{ forloop.counter }}
+                        </option>
+                      {% endif %}
                     {% endfor %}
                   </select>
                 </div>
@@ -85,6 +87,7 @@
                 </div>
               </div>
             </form>
+
             {% if template_data.user_rating %}
             <form method="POST" action="{% url 'movies.delete_rating' id=template_data.movie.id %}" class="mt-2">
               {% csrf_token %}

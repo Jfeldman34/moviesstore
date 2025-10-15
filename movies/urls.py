@@ -17,9 +17,11 @@ urlpatterns = [
         path('popularity-map/', views.popularity_map, name='movies.popularity_map'),
     path('map-data/', views.map_data, name='movies.map_data'),
     path('trending/<str:region>/', views.trending_by_region, name='movies.trending_region'),
+    path('<int:id>/rating/delete/', views.delete_rating, name='movies.delete_rating'),
 
 
 
 
 
 ]
+
